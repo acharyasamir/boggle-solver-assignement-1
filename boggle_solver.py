@@ -1,74 +1,87 @@
-'''
-      NAME : SAMIR ACHARYA
-      SID : @03058028
-'''
+"""
+NAME: SAMIR ACHARYA
+SID: @03058028
+"""
 
 class Boggle:
-  def __init__(self, grid, dictionary):
-    # Setup the boggle board and dictionary
-    self.grid = grid
-    self.dictionary = set(dictionary)  # Store the dictionary in a set for quicker lookup
-    self.rows = len(grid)              # Get the number of rows in the grid
-    self.cols = len(grid[0])           # Get the number of columns in the grid
-    self.result = set()                # Set to store discovered words
+    def __init__(self, grid, dictionary):
+        """Constructor to initialize the grid and dictionary."""
+        self.grid = grid
+        self.dictionary = set(dictionary)  # Convert the dictionary to a set for fast lookup
+        self.rows = len(grid)              # Number of rows in the grid
+        self.cols = len(grid[0]) if grid else 0  # Number of columns in the grid
+        self.result = set()                # Set to store found words
 
-  def is_valid(self, x, y, visited):
-    # Ensure that the position (x, y) is within bounds and not visited yet
-    return 0 <= x < self.rows and 0 <= y < self.cols and not visited[x][y]
+    def setGrid(self, grid):
+        """Setter method to update the grid."""
+        self.grid = grid
+        self.rows = len(grid)
+        self.cols = len(grid[0]) if grid else 0
 
-  def dfs(self, x, y, path, visited):
-    # Depth-first search to explore all potential words starting from (x, y)
-    if path in self.dictionary:
-      self.result.add(path)  # Add to result if the word is found in the dictionary
+    def setDictionary(self, dictionary):
+        """Setter method to update the dictionary."""
+        self.dictionary = set(dictionary)
 
-    # Terminate early if the current path is longer than the longest word in the dictionary
-    if len(path) > max(map(len, self.dictionary)):
-      return
+    def is_valid(self, x, y, visited):
+        """Check if the cell (x, y) is valid and not visited."""
+        return 0 <= x < self.rows and 0 <= y < self.cols and not visited[x][y]
 
-    # Define all 8 possible moves (left, right, diagonal, etc.)
-    directions = [(-1,-1), (-1,0), (-1,1), (0,-1), (0,1), (1,-1), (1,0), (1,1)]
+    def dfs(self, x, y, path, visited):
+        """Perform depth-first search from the cell (x, y) to find valid words."""
+        if path in self.dictionary:
+            self.result.add(path)  # Add to result if the path forms a valid word
 
-    # Mark the current cell as visited
-    visited[x][y] = True
+        # If the dictionary is empty, avoid calling max() to prevent errors
+        if self.dictionary and len(path) > max(map(len, self.dictionary)):
+            return
 
-    # Explore all neighboring cells
-    for dx, dy in directions:
-      nx, ny = x + dx, y + dy  # Calculate new coordinates
-      if self.is_valid(nx, ny, visited):
-        # Continue the search from the neighboring cell and append the new character to the path
-        self.dfs(nx, ny, path + self.grid[nx][ny], visited)
-    
-    # Unmark the current cell so it can be used in other paths
-    visited[x][y] = False
+        # Define all 8 possible directions (including diagonals)
+        directions = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
 
-  def solution(self):
-    # Create a visited matrix to track which cells have been explored
-    visited = [[False] * self.cols for _ in range(self.rows)]
+        # Mark the current cell as visited
+        visited[x][y] = True
 
-    # Start a DFS search from every cell in the grid
-    for x in range(self.rows):
-      for y in range(self.cols):
-        # Begin the search from the cell at (x, y)
-        self.dfs(x, y, self.grid[x][y], visited)
+        # Explore all 8 directions
+        for dx, dy in directions:
+            nx, ny = x + dx, y + dy
+            if self.is_valid(nx, ny, visited):
+                # Recurse to explore the next cell
+                self.dfs(nx, ny, path + self.grid[nx][ny], visited)
 
-    # Return the list of all valid words found in the grid
-    return list(self.result)
+        # Unmark the current cell to allow other paths to use it
+        visited[x][y] = False
+
+    def getSolution(self):
+        """Return the list of all valid words found in the grid."""
+        # Handle edge case: if dictionary is empty, return an empty list
+        if not self.dictionary:
+            return []
+
+        # Initialize the visited matrix
+        visited = [[False] * self.cols for _ in range(self.rows)]
+
+        # Start DFS from every cell in the grid
+        for x in range(self.rows):
+            for y in range(self.cols):
+                self.dfs(x, y, self.grid[x][y], visited)
+
+        # Return the list of all found words
+        return list(self.result)
 
 def main():
-  # Define the boggle board and the list of valid words
-  grid = [['A', 'B', 'C', 'D'],
-          ['E', 'F', 'G', 'H'], 
-          ['I', 'J', 'K', 'L'], 
-          ['A', 'B', 'C', 'D']]
+    """Main function to create a Boggle game and print the solution."""
+    grid = [['A', 'B', 'C', 'D'],
+            ['E', 'F', 'G', 'H'], 
+            ['I', 'J', 'K', 'L'], 
+            ['A', 'B', 'C', 'D']]
 
-  dictionary = ['ABEF', 'AFJIEB', 'DGKD', 'DGKA']
+    dictionary = ['ABEF', 'AFJIEB', 'DGKD', 'DGKA']
 
-  # Create an instance of the Boggle game and find all valid words in the grid
-  mygame = Boggle(grid, dictionary)
-  
-  # Display the list of words that were found
-  print(mygame.solution())
+    # Create an instance of Boggle
+    mygame = Boggle(grid, dictionary)
 
-# Ensure the main function runs only when the script is executed directly
+    # Print the solution (valid words found in the grid)
+    print(mygame.getSolution())
+
 if __name__ == "__main__":
-  main()
+    main()
